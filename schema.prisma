@@ -1,0 +1,94 @@
+// datasource db defines the database connection settings.
+// It is configured for PostgreSQL and uses an environment variable for the connection URL.
+// The 'extensions' feature enables the use of PostgreSQL-specific data types.
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+}
+
+// generator db configures Prisma Client settings.
+// It is set up to use Prisma Client Python with asyncio interface and specific features.
+generator db {
+  provider             = "prisma-client-py"
+  interface            = "asyncio"
+  recursive_type_depth = 5
+  previewFeatures      = ["postgresqlExtensions"]
+}
+
+model User {
+  id        String   @id @default(dbgenerated("gen_random_uuid()"))
+  email     String   @unique
+  password  String
+  role      Role     @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  submissions Submission[]
+  ratings     Rating[]
+  jokes       Joke[] // Needed to establish a relation with Joke
+}
+
+model Joke {
+  id          String   @id @default(dbgenerated("gen_random_uuid()"))
+  content     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  submittedBy String?
+
+  // Relations
+  user          User?          @relation(fields: [submittedBy], references: [id])
+  ratings       Rating[]
+  localizations Localization[]
+  Submission    Submission[]
+}
+
+model Submission {
+  id        String           @id @default(dbgenerated("gen_random_uuid()"))
+  userId    String
+  jokeId    String
+  status    SubmissionStatus
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  joke Joke @relation(fields: [jokeId], references: [id], onDelete: Cascade)
+}
+
+model Rating {
+  id        String   @id @default(dbgenerated("gen_random_uuid()"))
+  jokeId    String
+  userId    String
+  score     Int
+  createdAt DateTime @default(now())
+
+  // Relations
+  joke Joke @relation(fields: [jokeId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Localization {
+  id        String   @id @default(dbgenerated("gen_random_uuid()"))
+  language  String
+  content   Json
+  jokeId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  joke Joke @relation(fields: [jokeId], references: [id], onDelete: Cascade)
+}
+
+enum Role {
+  ADMIN
+  USER
+  EDITOR
+}
+
+enum SubmissionStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+

@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "joke-test"
+version = "0.1.0"
+description = "To create a joke API with a single endpoint that returns one joke, leveraging the given tech stack, the steps are as follows: "
+authors = ["AutoGPT <info@agpt.co>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.11"
+bcrypt = "^3.2.0"
+fastapi = "^0.78.0"
+prisma = "*"
+pydantic = "*"
+uvicorn = "*"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
